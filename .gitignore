@@ -1,0 +1,8 @@
+.pio/
+.vscode/
+host/gc_host
+host/gc_host_f64
+host/log_*.csv
+__pycache__/
+results/serial_raw.txt
+host/*.png

@@ -1,0 +1,8 @@
+{
+  "name": "gc_core",
+  "version": "1.0.0",
+  "description": "Geometric whole-body containment controller: DOB + PD-like + HOCBF QP safety filter + braking fallback (portable C++, no Arduino dependency)",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": { "flags": "-O2" }
+}
