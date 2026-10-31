@@ -11,8 +11,25 @@ import matplotlib.pyplot as plt
 
 
 def load(fn):
-    d = np.genfromtxt(fn, delimiter=",", names=True)
-    return d
+    """Read a log CSV, skipping rows that were truncated or garbled on the serial link."""
+    with open(fn) as f:
+        header = f.readline().strip().split(",")
+        rows, bad = [], 0
+        for line in f:
+            parts = line.strip().split(",")
+            if len(parts) != len(header):
+                bad += 1
+                continue
+            try:
+                rows.append([float(x) for x in parts])
+            except ValueError:
+                bad += 1
+    if bad:
+        print(f"{os.path.basename(fn)}: skipped {bad} malformed row(s)")
+    if not rows:
+        raise SystemExit(f"{fn}: no valid rows")
+    arr = np.array(rows)
+    return {name: arr[:, i] for i, name in enumerate(header)}
 
 
 def main(folder):

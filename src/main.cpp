@@ -7,7 +7,8 @@
 //   #BEGIN <scenario> / CSV header / rows / #SUMMARY <scenario> k=v ... / #END <scenario>
 // Use tools/capture_serial.py to save and plot them.
 //
-// Serial commands:  r = rerun all scenarios with logs,  b = benchmark only (no logs, 5 runs each)
+// Nothing runs until a command arrives, so no output is lost before the host is reading:
+//   r = all scenarios with logs,  b = benchmark only (no logs, 5 runs each)
 #include <Arduino.h>
 #include "scenario.h"
 
@@ -46,6 +47,7 @@ static void print_summary(const char* name, const BenchStats& s, real dt) {
 }
 
 static void run_all(bool with_logs, int repeats) {
+  Serial.println("#START");
   ScenarioCfg cfgs[3];
   cfgs[0].name = "nominal_only"; cfgs[0].cbf = false;
   cfgs[1].name = "ideal";
@@ -71,24 +73,29 @@ static void run_all(bool with_logs, int repeats) {
   Serial.println("#DONE");
 }
 
-void setup() {
-  Serial.begin(115200);
-  const uint32_t t0 = millis();
-  while (!Serial && millis() - t0 < 5000) delay(10);  // native USB: wait for the host
-  delay(500);
+static void print_info() {
   Serial.printf("#INFO board=YoloUNO chip=%s rev=%d cores=%d cpu_mhz=%u scalar=%s flash=%u\n",
                 ESP.getChipModel(), ESP.getChipRevision(), ESP.getChipCores(),
                 (unsigned)getCpuFrequencyMhz(), sizeof(real) == 4 ? "float" : "double",
                 (unsigned)ESP.getFlashChipSize());
-  run_all(true, 1);
-  Serial.println("#INFO send 'r' to rerun with logs, 'b' for benchmark-only runs");
+}
+
+void setup() {
+  Serial.begin(115200);
 }
 
 void loop() {
+  static uint32_t last_ready = 0;
   if (Serial.available()) {
     const int c = Serial.read();
-    if (c == 'r') run_all(true, 1);
-    else if (c == 'b') run_all(false, 5);
+    if (c == 'r' || c == 'b') {
+      print_info();
+      run_all(c == 'r', c == 'r' ? 1 : 5);
+    }
+  } else if (Serial && millis() - last_ready > 3000) {
+    // Prompt for monitor users; harmless if nobody is reading.
+    Serial.println("#READY send 'r' (runs with logs) or 'b' (benchmark only)");
+    last_ready = millis();
   }
-  delay(10);
+  delay(5);
 }

@@ -66,7 +66,7 @@ python tools/plot_results.py results
 ```
 
 This writes `results/log_<scenario>.csv`, `results/summary.csv`, `results/summary.md`,
-`results/results.png` and `results/topview.png`. Send `b` instead (`--cmd b`) for
+`results/results.png` and `results/topview.png`. Pass `--cmd b` for
 timing-only runs without trajectory logging (5 repeats per scenario).
 
 Each `#SUMMARY` line reports per-stage average and maximum time, p50/p99 of the total, CPU

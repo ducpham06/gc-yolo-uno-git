@@ -65,10 +65,19 @@ def main():
     ser.reset_input_buffer()
     ser.write(a.cmd.encode())
     cur, summaries, info = None, [], []
-    t0 = time.time()
+    started = False           # ignore everything until the board acknowledges with #START
+    t0 = t_cmd = time.time()
     raw = open(os.path.join(a.out, "serial_raw.txt"), "w")
     while time.time() - t0 < a.timeout:
         line = ser.readline().decode(errors="replace").strip()
+        if not started:
+            if line == "#START":
+                started = True
+                print("board started the run...")
+            elif time.time() - t_cmd > 3:   # board busy or command lost: ask again
+                ser.write(a.cmd.encode())
+                t_cmd = time.time()
+            continue
         if not line:
             continue
         raw.write(line + "\n")
@@ -84,6 +93,8 @@ def main():
             info.append(line); print(line)
         elif line.startswith("#DONE"):
             break
+        elif line.startswith("#"):
+            continue
         elif cur:
             cur.write(line + "\n")
     raw.close()
