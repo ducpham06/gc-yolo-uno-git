@@ -60,7 +60,8 @@ If the serial monitor stays silent, change `-DARDUINO_USB_CDC_ON_BOOT=1` to `0` 
 
 ```bash
 pip install pyserial numpy matplotlib
-python tools/capture_serial.py --port COM5            # or /dev/ttyACM0
+python tools/capture_serial.py --list                 # find the board's port
+python tools/capture_serial.py --port COM7            # or /dev/ttyACM0; omit if only one port
 python tools/plot_results.py results
 ```
 
